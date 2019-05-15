@@ -18,7 +18,7 @@ namespace Library.Authentication.Service
             _tokenManagerConfig = tokenManagerConfig;
         }
 
-        public string GenerateToken(LoginUser user)
+        public string GenerateToken(LoginUserModel user)
         {
             // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();

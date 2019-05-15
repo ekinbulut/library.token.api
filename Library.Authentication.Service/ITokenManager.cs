@@ -4,6 +4,6 @@ namespace Library.Authentication.Service
 {
     public interface ITokenManager
     {
-        string GenerateToken(LoginUser user);
+        string GenerateToken(LoginUserModel user);
     }
 }

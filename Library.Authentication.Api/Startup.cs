@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Library.Authentication.Api.Filters;
 using Library.Authentication.Service;
 using Library.Authentication.Service.Data;
 using Library.Authentication.Service.Data.Repositories;
 using Library.Authentication.Service.Dispatchers.Author;
 using Library.Authentication.Service.Dispatchers.Book;
+using Library.Authentication.Service.Dispatchers.Publisher;
 using Library.Authentication.Service.Dispatchers.Storage;
 using Library.Authentication.Service.Settings;
 using Library.Services.Common;
@@ -40,7 +42,8 @@ namespace Library.Authentication.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(options => options.Filters.Add(new CustomExceptionFilter()))
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             var tokenConfig = Configuration.GetSection(AppConfigConstants.TokenManagerConfigConstants)
                 .Get<TokenManagerConfig>();
@@ -107,7 +110,7 @@ namespace Library.Authentication.Api
         private void AddServices(IServiceCollection services)
         {
             // configure DI for application services
-            services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<ITokenService, TokenService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddSingleton<ITokenManager, TokenManager>();
@@ -117,6 +120,8 @@ namespace Library.Authentication.Api
             services.AddScoped<IBookServiceDispatcher, BookServiceDispatcher>();
             services.AddScoped<IAuthorServiceDispatcher, AuthorServiceDispatcher>();
             services.AddScoped<IStorageServiceDispatcher, StorageServiceDispatcher>();
+            services.AddScoped<IPublisherServiceDispatcher, PublisherServiceDispatcher>();
+
         }
 
         private void AddSwagger(IServiceCollection services)
@@ -180,6 +185,8 @@ namespace Library.Authentication.Api
                 Configuration.GetSection(AppConfigConstants.AuthorServiceEndPointConstants));
             services.Configure<StorageServiceEndPointConstants>(
                 Configuration.GetSection(AppConfigConstants.StorageServiceEndPointConstants));
+            services.Configure<PublisherServiceEndPointConstants>(
+                Configuration.GetSection(AppConfigConstants.PublisherServiceEndPointConstants));
         }
 
         private void AddComponents(IServiceCollection services)
