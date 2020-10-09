@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using RestSharp;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -41,9 +42,16 @@ namespace Library.Authentication.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
-            services.AddMvc(options => options.Filters.Add(new CustomExceptionFilter()))
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // services.AddCors();
+            // services.AddMvc(options => options.Filters.Add(new CustomExceptionFilter()))
+            //         .SetCompatibilityVersion(CompatibilityVersion.Latest);
+            
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new CustomExceptionFilter());
+                options.EnableEndpointRouting = false;
+
+            }).SetCompatibilityVersion(CompatibilityVersion.Latest);
 
             var tokenConfig = Configuration.GetSection(AppConfigConstants.TokenManagerConfigConstants)
                 .Get<TokenManagerConfig>();
@@ -64,11 +72,11 @@ namespace Library.Authentication.Api
                 app.UseHsts();
 
             // global cors policy
-            app.UseCors(x => x
-                            .AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .AllowCredentials());
+            // app.UseCors(x => x
+            //                 .AllowAnyOrigin()
+            //                 .AllowAnyMethod()
+            //                 .AllowAnyHeader()
+            //                 .AllowCredentials());
 
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
@@ -84,7 +92,10 @@ namespace Library.Authentication.Api
 
             app.UseAuthentication();
 
-            app.UseMvc();
+            app.UseMvc(builder =>
+            {
+
+            });
         }
 
         /// <summary>
@@ -129,19 +140,33 @@ namespace Library.Authentication.Api
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc(Version, new Info {Title = Title, Version = Version});
+                c.SwaggerDoc(Version, new OpenApiInfo()
+                {
+                    Title = Title,
+                    Version = Version
+                });
+                
                 var security = new Dictionary<string, IEnumerable<string>>
                                {
                                    {"Bearer", new string[] { }}
                                };
 
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                                                   {
                                                       Description =
                                                           "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
-                                                      , Name = "Authorization", In = "header", Type = "apiKey"
+                                                      , Name = "Authorization", 
+                                                      In = ParameterLocation.Header,
+                                                      Type = SecuritySchemeType.ApiKey
+                                                      // In = "header", Type = "apiKey"
                                                   });
-                c.AddSecurityRequirement(security);
+                var a = new OpenApiSecurityRequirement();
+                a.Add(new OpenApiSecurityScheme()
+                {
+                    BearerFormat = "Bearer"
+                }, new List<string>());
+
+                c.AddSecurityRequirement(a);
             });
         }
 
