@@ -38,8 +38,6 @@ namespace Library.Authentication.Api
         {
             return WebHost.CreateDefaultBuilder(args)
                           .UseStartup<Startup>()
-                          .UseIIS()
-                          .UseIISIntegration()
                           .ConfigureLogging(options =>
                           {
                               options.ClearProviders();
@@ -47,7 +45,6 @@ namespace Library.Authentication.Api
                           })
                           .UseUrls("http://*:8093")
                           .UseKestrel()
-                          .UseIISIntegration()
                           .UseNLog();
         }
     }
